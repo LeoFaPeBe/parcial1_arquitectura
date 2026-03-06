@@ -1,25 +1,19 @@
-## ADR 1 — Implementación del patrón DTO (Data Transfer Object)
+## ADR 1 — Implementación de endpoint de prueba del backend
 
-**Título:** Implementación del patrón DTO para transferencia de datos
+**Título:** Implementación de endpoint de verificación del backend
 
-**Estado:** Propuesto
+**Estado:** Implementado
 
 **Contexto:**
-El sistema de gestión parroquial utiliza una arquitectura cliente-servidor compuesta por un frontend desarrollado en Angular y un backend desarrollado en Java con Spring Boot. Actualmente, las entidades del modelo de datos pueden estar siendo enviadas directamente al frontend desde los controladores del backend, lo que genera un alto acoplamiento entre la capa de persistencia y la capa de presentación.
 
-El proyecto presenta la siguiente estructura arquitectónica:
+El sistema de gestión parroquial utiliza una arquitectura cliente-servidor compuesta por un frontend desarrollado en Angular y un backend desarrollado en Spring Boot con el lenguaje Java. Durante el proceso de desarrollo y pruebas del sistema, se identificó la necesidad de contar con un mecanismo sencillo que permitiera verificar rápidamente el funcionamiento del backend de forma independiente al frontend.
 
-- Frontend: Angular (TypeScript, HTML, SCSS)
+Debido a que el sistema también utiliza contenedores mediante Docker y orquestación con Docker Compose, resulta útil disponer de un endpoint que confirme que el servicio backend se encuentra activo y respondiendo correctamente.
 
-- Backend: Java Spring Boot
-
-- Persistencia: JPA / Hibernate
-
-- Infraestructura: Docker y Docker Compose
-
-Durante el diagnóstico arquitectónico se identificó que el envío directo de entidades puede generar problemas de seguridad y mantenimiento.
+Este tipo de endpoint facilita las pruebas funcionales, el diagnóstico de errores y la verificación del correcto despliegue del sistema.
 
 **Diagrama MER:**
+
 Las principales entidades identificadas en la base de datos son:
 
 - Usuarios
@@ -44,44 +38,35 @@ Relaciones principales:
 
 - Persona 1 — N Pagos
 
-**NOTA: Utilizamos el diagrama para todos los ADR, porque implementamos cambios arquitectonicos y no en la base de datos.**
+**NOTA: Utilizamos el mismo diagrama para todos los ADR, ya que los cambios realizados corresponden a la arquitectura del sistema y no a modificaciones en la base de datos.**
 
 **Decisión:**
-Se implementará el patrón DTO (Data Transfer Object) para separar las entidades del modelo de datos de los objetos que se envían al frontend.
 
-Los DTO se ubicarán en un paquete específico dentro del backend:
+Se decidió implementar un endpoint de prueba dentro del backend que permita verificar de manera rápida si el servicio se encuentra funcionando correctamente.
 
-dto/
-UserDTO.java
-PersonaDTO.java
-CursoDTO.java
+Para ello se creó un nuevo controlador denominado TestController, el cual expone el endpoint /api/test. Este endpoint devuelve un mensaje simple confirmando que el backend se encuentra activo.
 
-Esto permitirá controlar qué información se expone a la capa de presentación.
+El controlador fue ubicado en el paquete:
 
-Cambios implementados:
-
-- Creación de la clase UserDTO.java.
-
-- Modificación del controlador de autenticación para utilizar el DTO en lugar de la entidad.
-
-- Implementación de métodos de conversión entre entidad y DTO.
-
-Prueba funcional:
-Se realizaron pruebas de autenticación desde el frontend verificando que la información enviada y recibida mantiene la funcionalidad del sistema.
+backend/src/main/java/com/iglesia/controller/
 
 **Consecuencias:**
 
 Impacto positivo:
 
-- Mayor seguridad en la exposición de datos
+- Permite verificar rápidamente el funcionamiento del backend.
 
-- Desacoplamiento entre capas
+- Facilita las pruebas funcionales del sistema.
 
-- Mejor mantenibilidad del sistema
+- Ayuda en el diagnóstico de errores durante el desarrollo o despliegue.
+
+- Permite validar la conectividad entre servicios.
 
 Trade-offs:
 
-- Incremento en el número de clases del proyecto.
+- Se agrega un endpoint adicional al sistema que no forma parte de la lógica principal de negocio.
+
+Debe controlarse su uso en entornos de producción si no es necesario.
 
 ## ADR 2 — Aplicación del principio SRP (Single Responsibility Principle)
 
