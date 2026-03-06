@@ -1,0 +1,444 @@
+## ADR 1 — Implementación del patrón DTO (Data Transfer Object)
+
+**Título:** Implementación del patrón DTO para transferencia de datos
+
+**Estado:** Propuesto
+
+**Contexto:**
+El sistema de gestión parroquial utiliza una arquitectura cliente-servidor compuesta por un frontend desarrollado en Angular y un backend desarrollado en Java con Spring Boot. Actualmente, las entidades del modelo de datos pueden estar siendo enviadas directamente al frontend desde los controladores del backend, lo que genera un alto acoplamiento entre la capa de persistencia y la capa de presentación.
+
+El proyecto presenta la siguiente estructura arquitectónica:
+
+- Frontend: Angular (TypeScript, HTML, SCSS)
+
+- Backend: Java Spring Boot
+
+- Persistencia: JPA / Hibernate
+
+- Infraestructura: Docker y Docker Compose
+
+Durante el diagnóstico arquitectónico se identificó que el envío directo de entidades puede generar problemas de seguridad y mantenimiento.
+
+**Diagrama MER:**
+Las principales entidades identificadas en la base de datos son:
+
+- Usuarios
+
+- Personas
+
+- Cursos
+
+- Inscripciones
+
+- Ofrendas
+
+- Pagos
+
+Relaciones principales:
+
+- Persona 1 — N Inscripciones
+
+- Curso 1 — N Inscripciones
+
+- Persona 1 — N Ofrendas
+
+- Persona 1 — N Pagos
+
+**NOTA: Utilizamos el diagrama para todos los ADR, porque implementamos cambios arquitectonicos y no en la base de datos.**
+
+**Decisión:**
+Se implementará el patrón DTO (Data Transfer Object) para separar las entidades del modelo de datos de los objetos que se envían al frontend.
+
+Los DTO se ubicarán en un paquete específico dentro del backend:
+
+dto/
+UserDTO.java
+PersonaDTO.java
+CursoDTO.java
+
+Esto permitirá controlar qué información se expone a la capa de presentación.
+
+Cambios implementados:
+
+- Creación de la clase UserDTO.java.
+
+- Modificación del controlador de autenticación para utilizar el DTO en lugar de la entidad.
+
+- Implementación de métodos de conversión entre entidad y DTO.
+
+Prueba funcional:
+Se realizaron pruebas de autenticación desde el frontend verificando que la información enviada y recibida mantiene la funcionalidad del sistema.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Mayor seguridad en la exposición de datos
+
+- Desacoplamiento entre capas
+
+- Mejor mantenibilidad del sistema
+
+Trade-offs:
+
+- Incremento en el número de clases del proyecto.
+
+## ADR 2 — Aplicación del principio SRP (Single Responsibility Principle)
+
+**Título:** Aplicación del principio de responsabilidad única (SRP)
+
+**Estado:** Propuesto
+
+**Contexto:**
+El sistema actual presenta controladores que pueden contener múltiples responsabilidades, incluyendo manejo de solicitudes HTTP, lógica de negocio y acceso a datos.
+
+Según los principios SOLID, una clase debe tener una única responsabilidad dentro del sistema. La falta de este principio puede generar código difícil de mantener y escalar.
+
+**Decisión:**
+Se aplicará el principio SRP separando responsabilidades en tres capas principales:
+
+- Controller: manejo de solicitudes HTTP
+
+- Service: lógica de negocio
+
+- Repository: acceso a base de datos
+
+Esto permitirá que cada componente tenga una función específica dentro de la arquitectura.
+
+**Cambios implementados:**
+
+- Creación de la capa service.
+
+- Traslado de la lógica de negocio desde los controladores hacia los servicios.
+
+- Uso de repositorios para el acceso a datos.
+
+**Pruebas funcionales:**
+
+Se verificó el funcionamiento correcto del sistema realizando operaciones de autenticación y navegación entre módulos.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Mejor organización del código
+
+- Mayor mantenibilidad
+
+- Reducción del acoplamiento
+
+Trade-offs:
+
+- Mayor cantidad de archivos en el proyecto.
+
+## ADR 3 — Implementación de Service Layer
+
+**Título:** Implementación de una capa de servicios (Service Layer)
+
+**Estado:** Propuesto
+
+**Contexto:**
+Durante el diagnóstico del sistema se identificó que la lógica de negocio puede encontrarse mezclada con los controladores. Esto dificulta la reutilización de la lógica y aumenta el acoplamiento.
+
+**Decisión:**
+Se implementará una capa de servicios encargada de manejar la lógica de negocio del sistema.
+
+Ejemplo de servicio:
+
+UserService.java
+CourseService.java
+PaymentService.java
+
+Los controladores únicamente delegarán las operaciones a estos servicios.
+
+**Cambios implementados:**
+
+- Creación de UserService.
+
+- Refactorización de métodos de autenticación.
+
+- Uso de servicios desde los controladores.
+
+**Pruebas funcionales:**
+
+Se realizaron pruebas de inicio de sesión y navegación del sistema para validar que la funcionalidad permanece intacta.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Mejor separación de responsabilidades
+
+- Mayor reutilización del código
+
+- Arquitectura más limpia
+
+Trade-offs:
+
+- Mayor complejidad inicial en la estructura del proyecto.
+
+## ADR 4 — Manejo global de excepciones
+
+**Título:** Implementación de manejo global de excepciones
+
+**Estado:** Propuesto
+
+**Contexto:**
+Actualmente el sistema puede manejar errores directamente en los controladores, lo que genera repetición de código y dificulta el mantenimiento.
+
+**Decisión:**
+Se implementará un manejador global de excepciones utilizando @ControllerAdvice en Spring Boot.
+
+**Archivo propuesto:**
+
+- GlobalExceptionHandler.java
+
+Esto permitirá centralizar el manejo de errores en toda la aplicación.
+
+**Cambios implementados:**
+
+- Creación de la clase GlobalExceptionHandler.
+
+- Manejo de excepciones comunes como errores de autenticación o validación.
+
+**Pruebas funcionales:**
+
+Se realizaron pruebas generando errores de validación para verificar que el sistema responde correctamente.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Código más limpio
+
+- Manejo consistente de errores
+
+Trade-offs:
+
+- Requiere definir correctamente los tipos de excepciones.
+
+## ADR 5 — Inyección de dependencias por constructor
+
+**Título:** Implementación de Dependency Injection mediante constructores
+
+**Estado:** Propuesto
+
+**Contexto:**
+El sistema utiliza Spring Boot, el cual ofrece mecanismos de inyección de dependencias. Sin embargo, el uso de @Autowired en campos puede dificultar las pruebas unitarias.
+
+**Decisión:**
+Se implementará la inyección de dependencias por constructor, siguiendo el principio Dependency Inversion de SOLID.
+
+Ejemplo:
+
+public AuthController(AuthService authService){
+    this.authService = authService;
+}
+
+**Cambios implementados:**
+
+- Eliminación de @Autowired en atributos.
+
+- Implementación de constructores para inyección de dependencias.
+
+**Pruebas funcionales:**
+
+- Se verificó el correcto funcionamiento del sistema realizando pruebas de autenticación.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Mayor facilidad para realizar pruebas unitarias
+
+- Código más robusto
+
+Trade-offs:
+
+- Requiere modificar varias clases existentes.
+
+## ADR 6 — Implementación del patrón Repository
+
+**Título:** Uso del patrón Repository para acceso a datos
+
+**Estado:** Propuesto
+
+**Contexto:**
+El sistema utiliza JPA para el acceso a datos. Sin embargo, es importante mantener una capa de abstracción que permita separar la lógica del dominio de la persistencia.
+
+
+**Decisión:**
+Se utilizará el patrón Repository mediante interfaces que extiendan JpaRepository.
+
+Ejemplo:
+
+UserRepository.java
+PersonaRepository.java
+
+**Cambios implementados:**
+
+- Creación de interfaces de repositorio.
+
+- Refactorización del acceso a base de datos.
+
+**Pruebas funcionales:**
+
+- Se realizaron pruebas CRUD para verificar la correcta persistencia de datos.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Abstracción de la capa de persistencia
+
+- Mayor flexibilidad
+
+Trade-offs:
+
+- Dependencia del framework Spring Data.
+
+## ADR 7 — Validación de datos en backend
+
+**Título:** Implementación de validaciones mediante anotaciones
+
+**Estado:** Propuesto
+
+**Contexto:**
+El sistema debe garantizar la integridad de los datos enviados desde el frontend.
+
+**Decisión:**
+Se implementarán validaciones utilizando anotaciones de Java:
+
+@Valid
+@NotNull
+@Email
+
+**Cambios implementados:**
+
+Se agregaron validaciones en los DTO y controladores.
+
+**Pruebas funcionales:**
+
+Se enviaron solicitudes con datos inválidos para comprobar la respuesta del sistema.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Mayor integridad de datos
+
+- Prevención de errores
+
+Trade-offs:
+
+- Mayor control en la validación de formularios.
+
+## ADR 8 — Implementación del patrón Observer
+
+**Título:** Implementación del patrón Observer para eventos del sistema
+
+**Estado:** Propuesto
+
+**Contexto:**
+El sistema registra eventos importantes como pagos y ofrendas.
+
+**Decisión:**
+Se utilizará el patrón Observer para manejar eventos del sistema, permitiendo que diferentes componentes reaccionen ante estos eventos.
+
+Ejemplo:
+
+- Evento de registro de pago
+
+- Evento de registro de ofrenda
+
+**Cambios implementados:**
+
+Creación de un sistema de eventos utilizando mecanismos de Spring.
+
+**Pruebas funcionales:**
+
+Se verificó que los eventos se ejecutan correctamente tras registrar pagos.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Arquitectura más desacoplada
+
+- Mayor escalabilidad
+
+Trade-offs:
+
+- Mayor complejidad en la gestión de eventos.
+
+## ADR 9 — Modularización del backend
+
+**Título:** Organización modular del backend
+
+**Estado:** Propuesto
+
+**Contexto:**
+El proyecto presenta varios módulos funcionales que deben mantenerse organizados para facilitar su mantenimiento.
+
+**Decisión:**
+Se organizará el backend en módulos funcionales:
+
+auth
+users
+courses
+payments
+
+**Cambios implementados:**
+
+Reorganización de paquetes en el backend.
+
+**Pruebas funcionales:**
+
+Se verificó que las rutas del sistema continúan funcionando correctamente.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Mejor organización del código
+
+- Mayor escalabilidad
+
+Trade-offs:
+
+- Requiere refactorización inicial.
+
+## ADR 10 — Implementación de logging centralizado
+
+**Título:** Implementación de sistema de logging centralizado
+
+**Estado:** Propuesto
+
+**Contexto:**
+El sistema requiere mecanismos de monitoreo para registrar eventos y errores.
+
+**Decisión:**
+
+Se implementará un sistema de logging centralizado utilizando SLF4J y Logback.
+
+Esto permitirá registrar eventos importantes del sistema.
+
+**Cambios implementados:**
+
+Configuración de logging en el backend.
+
+**Pruebas funcionales:**
+
+Se verificó que las operaciones del sistema generan registros en los logs.
+
+**Consecuencias:**
+
+Impacto positivo:
+
+- Mejor monitoreo del sistema
+
+- Facilita la depuración de errores
+
+Trade-offs:
+
+- Generación de archivos de log adicionales.
