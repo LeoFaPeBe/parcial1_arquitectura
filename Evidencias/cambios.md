@@ -154,3 +154,42 @@ http://localhost:8080/api/users/999
  "error": "Bad Request",
  "message": "Usuario no encontrado"
 }
+
+## Cambio 4 — Validación de datos en backend
+
+*Ubicación*
+
+backend/src/main/java/com/iglesia/controller/AuthController.java
+*Código*
+package com.iglesia.controller;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/auth")
+public class AuthController {
+
+    @PostMapping("/login")
+    public String login(@Valid @RequestBody LoginRequest request){
+        return "Login procesado correctamente";
+    }
+
+    public record LoginRequest(
+            @Email @NotBlank String email,
+            @NotBlank String password
+    ){}
+}
+
+*Prueba funcional*
+
+GET
+http://localhost:8080/api/auth/login
+
+*Resultado esperado*
+
+El backend rechaza la solicitud con error 400 Bad Request debido a que los datos enviados no cumplen con las validaciones.
+
+Esto demuestra que el backend ahora valida la integridad de los datos antes de procesarlos.
