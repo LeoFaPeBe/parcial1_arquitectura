@@ -427,3 +427,6 @@ Impacto positivo:
 Trade-offs:
 
 - Generación de archivos de log adicionales.
+
+## Conclusion
+El análisis del proyecto ERP Iglesias permitió identificar oportunidades de mejora en la arquitectura del sistema. A través de la definición de ADR (Architectural Decision Records) se documentaron las decisiones tomadas para mejorar la organización y calidad del backend. Entre los cambios implementados se encuentran la creación de un endpoint de prueba, la separación de la lógica de negocio mediante una capa de servicios, el manejo global de excepciones y la validación de datos en el backend. Estas mejoras permiten que el sistema sea más organizado, mantenible y alineado con buenas prácticas de desarrollo. En conjunto, los ADR ayudaron a estructurar de forma clara la evolución arquitectónica del proyecto.

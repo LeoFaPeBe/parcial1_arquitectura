@@ -1,4 +1,4 @@
-## Cambio 1 — Endpoint de prueba del backend
+## Cambio 1 — Endpoint de prueba del backend ADR 1
 
 *Ubicación*
 
@@ -32,7 +32,7 @@ Backend funcionando correctamente
 
 Esto demuestra que el backend sigue funcionando.
 
-## Cambio 2 — Crear la capa Service y mover lógica fuera del controller
+## Cambio 2 — Crear la capa Service y mover lógica fuera del controller ADR 3
 
 *Ubicación*
 
@@ -106,7 +106,7 @@ Se crea correctamente un usuario en la base de datos.
 
 Esto demuestra que la lógica de negocio fue movida desde el controlador hacia una capa de servicio.
 
-## Cambio 3 — Manejo global de excepciones
+## Cambio 3 — Manejo global de excepciones ADR 4
 
 *Ubicación*
 
@@ -155,7 +155,7 @@ http://localhost:8080/api/users/999
  "message": "Usuario no encontrado"
 }
 
-## Cambio 4 — Validación de datos en backend
+## Cambio 4 — Validación de datos en backend ADR 7
 
 *Ubicación*
 
@@ -193,3 +193,39 @@ http://localhost:8080/api/auth/login
 El backend rechaza la solicitud con error 400 Bad Request debido a que los datos enviados no cumplen con las validaciones.
 
 Esto demuestra que el backend ahora valida la integridad de los datos antes de procesarlos.
+
+## Cambio 5 — Inyección de dependencias por constructor ADR 5
+
+*Ubicación*
+backend/src/main/java/com/iglesia/controller/AuthController.java
+
+backend/src/main/java/com/iglesia/controller/UserController.java
+
+backend/src/main/java/com/iglesia/service/UserService.java
+
+*Código*
+Antes
+Se utilizaba inyección de dependencias mediante @Autowired en atributos.
+
+@Autowired
+private AuthService authService;
+
+Después
+Se reemplaza por inyección mediante constructor.
+
+private final AuthService authService;
+
+public AuthController(AuthService authService){
+    this.authService = authService;
+}
+
+*Prueba funcional*
+
+GET
+http://localhost:8080/api/auth/login
+
+*Resultado esperado*
+
+El endpoint continúa funcionando correctamente y el backend procesa la solicitud sin errores.
+
+Esto demuestra que el sistema ahora utiliza inyección de dependencias mediante constructores, lo que mejora la mantenibilidad del código y facilita la realización de pruebas unitarias.
