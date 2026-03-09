@@ -105,3 +105,52 @@ http://localhost:8080/api/users
 Se crea correctamente un usuario en la base de datos.
 
 Esto demuestra que la lógica de negocio fue movida desde el controlador hacia una capa de servicio.
+
+## Cambio 3 — Manejo global de excepciones
+
+*Ubicación*
+
+backend/src/main/java/com/iglesia/exception/GlobalExceptionHandler.java
+
+*Código*
+package com.iglesia.exception;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> manejarError(RuntimeException ex){
+
+        Map<String,Object> error = new HashMap<>();
+
+        error.put("timestamp", LocalDateTime.now());
+        error.put("status", HttpStatus.BAD_REQUEST.value());
+        error.put("error", "Bad Request");
+        error.put("message", ex.getMessage());
+
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+}
+
+
+*Prueba funcional*
+
+GET
+http://localhost:8080/api/users/999
+
+*Resultado esperado*
+
+{
+ "timestamp": "2026-03-09T20:00:00",
+ "status": 400,
+ "error": "Bad Request",
+ "message": "Usuario no encontrado"
+}
