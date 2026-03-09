@@ -249,7 +249,7 @@ Trade-offs:
 **Estado:** Propuesto
 
 **Contexto:**
-El sistema utiliza JPA para el acceso a datos. Sin embargo, es importante mantener una capa de abstracción que permita separar la lógica del dominio de la persistencia.
+El sistema utiliza JPA para el acceso a datos. Sin embargo, es importante mantener una capa de abstracción que permita separar la lógica del dominio de la persistencia
 
 
 **Decisión:**
